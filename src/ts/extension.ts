@@ -33,7 +33,7 @@ import {
   CONFIG_JAVA_PATH,
   CONFIG_LSP_PATH,
 } from "./consts";
-import config from "./config";
+import { config, registerConfigurationRequestHandlers } from "./config";
 import { pklDownloadPackageRequest, pklSyncProjectsRequest } from "./requests";
 import PklTextDocumentContentProvider from "./providers/PklTextDocumentContentProvider";
 import { getJavaDistribution, onDidChangeJavaDistribution } from "./javaDistribution";
@@ -130,6 +130,7 @@ async function startLspServer() {
   const client = await createLanguageClient();
   languageClientRef.client = client;
   await client.start();
+  registerConfigurationRequestHandlers(client);
   registerNotificationHandlers(client);
 }
 

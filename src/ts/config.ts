@@ -16,11 +16,18 @@
 
 import { workspace } from "vscode";
 import {
+  LanguageClient,
+  RequestType,
+  ConfigurationParams,
+} from "vscode-languageclient/node";
+import {
+  CONFIG_CLI_PATH,
   CONFIG_JAVA_PATH,
   CONFIG_LSP_DEBUG_PORT,
   CONFIG_LSP_PATH,
   CONFIG_LSP_SOCKET_HOST,
   CONFIG_LSP_SOCKET_PORT,
+  CONFIG_MODULEPATH,
 } from "./consts";
 
 const getConfig = <T>(configName: string): T | undefined => {
@@ -40,6 +47,14 @@ const config = {
     return getConfig<string>(CONFIG_LSP_PATH);
   },
 
+  get cliPath() {
+    return getConfig<string>(CONFIG_CLI_PATH);
+  },
+
+  get modulepath() {
+    return getConfig<string[]>(CONFIG_MODULEPATH) ?? [];
+  },
+
   get lspDebugPort() {
     return getConfig<number>(CONFIG_LSP_DEBUG_PORT);
   },
@@ -54,3 +69,28 @@ const config = {
 };
 
 export default config;
+
+export const configurationRequestHandlerType = new RequestType<
+  ConfigurationParams,
+  any[],
+  void
+>('workspace/configuration');
+
+export const configurationRequestHandler = async (
+  params: ConfigurationParams
+): Promise<any[]> => {
+  return params.items.map(item => {
+    switch (item.section) {
+      case 'pkl.cli.path':
+        return config.cliPath;
+      case 'pkl.modulepath':
+        return config.modulepath.map(entry => vscode.Uri.parse(entry).fsPath);
+      default:
+        return null;
+    }
+  })
+};
+
+export async function registerConfigurationRequestHandlers(client: LanguageClient) {
+  client.onRequest(configurationRequestHandlerType, configurationRequestHandler);
+}
