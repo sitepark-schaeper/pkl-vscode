@@ -22,6 +22,7 @@ import {
   NotificationHandler,
   LanguageClient,
 } from "vscode-languageclient/node";
+import config from "./config";
 
 export interface ActionableNotification {
   type: MessageType;
